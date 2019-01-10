@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Исправление номеров телефонов</title>
+
+    <style type='text/css'>
+        .list {
+            height: 85vh;
+        }
+    </style>
+</head>
+<body>
+    <p><button onclick='update()'>Исправить</button></p>
+
+    <textarea id='oldPhones' class='list' placeholder='Телефоны для исправления (копируем столбец из Excel)' cols="30" onchange="onchangeOldPhone()"></textarea>
+    <textarea id='newPhones' class='list' placeholder='Исправленные телефоны (скопировать отсюда и вставить в Excel)' readonly></textarea>
+    <textarea id='corrections' class='list' placeholder='Исправления' cols="30" readonly></textarea>
+
+    <script>
+
+        function onchangeOldPhone() {
+            newPhones.value = '';
+            corrections.value = '';
+        }
+
+        function update() {
+            let str = oldPhones.value.replace(/\+/g, '');
+            let array = str.split(/\n|\s|[;]/g);
+            array = array.filter(el => { return el.trim() > '' && el.charAt(0) <= '9'});
+
+
+            //corrections
+            let listCorrections = '';
+            let arrCorr = str.split(/\n/g);
+            arrCorr = arrCorr.filter(el => { return el.trim() > '' && el.charAt(0) <= '9' });
+
+            let arr1 = arrCorr.filter(el => { return (el.search(';') > 0) && (el.trimRight().substr(-1) != ';') });
+            let arr2 = arrCorr.filter(el => { return (el.length == 10) });
+            let arr3 = arrCorr.filter(el => { return (el.length < 10) });
+            let arr4 = str.split(/\n/g).filter(el => { return (el.charAt(0) > '9') });
+
+            listCorrections += arr1.length > 0 ? 'двойные номера: \n' + arr1.join('\n') + '\n\n' : '';
+            listCorrections += arr2.length > 0 ? 'короткие номера (без +7): \n' + arr2.join('\n') + '\n\n' : '';
+            listCorrections += arr3.length > 0 ? 'очень короткие номера: \n' + arr3.join('\n') + '\n\n' : '';
+            listCorrections += arr4.length > 0 ? 'не телефон (пропускаем): \n' + arr4.join('\n') + '\n\n' : '';
+
+            let listPhones = '';
+             
+            for (let i = 0; i < array.length; i++) {
+                let oldPhone = array[i].trim();
+                let newPhone = oldPhone;
+
+                if (oldPhone.charAt(0) == '8') {
+                    newPhone = '7' + oldPhone.substring(1, 100);
+                }
+                else if (oldPhone.length == 10) {
+                    newPhone = '7' + oldPhone;
+                }
+                else if (oldPhone.length < 10) {
+                    newPhone = '7' + oldPhone;
+                }
+
+                listPhones += newPhone + '\n';
+            }
+
+            newPhones.value = listPhones;
+            corrections.value = listCorrections;
+
+        }
+
+    </script>
+</body>
+</html>
